@@ -269,7 +269,7 @@ bin/hadoop fs 具体命令   OR  bin/hdfs dfs 具体命令
 dfs是fs的实现类
 #### 5.2 基本语法
 ```shell
-		[-appendToFile <localsrc> ... <dst>]
+        [-appendToFile <localsrc> ... <dst>]
         [-cat [-ignoreCrc] <src> ...]
         [-checksum <src> ...]
         [-chgrp [-R] GROUP PATH...]
@@ -663,3 +663,49 @@ type hadoop-2.7.2.tar.gz.part2 >> hadoop-2.7.2.tar.gz.part1
 合并完成后，将hadoop-2.7.2.tar.gz.part1重新命名为hadoop-2.7.2.tar.gz。解压发现该tar包非常完整。
 ### 7.HDFS的数据流
 #### 7.1 HDFS写数据流程
+![HDFS写流程](assets/HDFS写流程.png)
+
+#### 7.2 HDFS读数据流程
+![HDFS读数据](assets/HDFS读数据.png)
+
+### 8.NameNode工作机制 
+NameNode和Secondary NameNode工作机制 
+![NN&2NN](assets/NN&2NN.png)
+
+### 9.HDFS HA高可用
+
+#### 9.1什么是HDFS HA
+在hadoop2.0之前，namenode只有一个，存在单点问题（虽然hadoop1.0有secondarynamenode，checkpointnode，buckcupnode这些，但是单点问题依然存在），在hadoop2.0引入了HA机制。hadoop2.0的HA机制官方介绍了有2种方式，一种是NFS（Network File System）方式，另外一种是QJM（Quorum Journal Manager）方式。
+
+1）所谓HA（High Available），即高可用（7*24小时不中断服务）。
+2）实现高可用最关键的策略是消除单点故障。HA严格来说应该分成各个组件的HA机制：HDFS的HA和YARN的HA。
+3）Hadoop2.0之前，在HDFS集群中NameNode存在单点故障（SPOF）。
+4）NameNode主要在以下两个方面影响HDFS集群
+	NameNode机器发生意外，如宕机，集群将无法使用，直到管理员重启
+	NameNode机器需要升级，包括软件、硬件升级，此时集群也将无法使用
+HDFS HA功能通过配置Active/Standby两个NameNodes实现在集群中对NameNode的热备来解决上述问题。如果出现故障，如机器崩溃或机器需要升级维护，这时可通过此种方式将NameNode很快的切换到另外一台机器。
+#### 9.2 HDFS-HA工作机制
+
+#### 9.2.1基本原理
+
+通过双NameNode消除单点故障
+1）hadoop2.0的HA 机制有两个namenode，一个是active namenode，状态是active；另外一个是standby namenode，状态是standby。两者的状态是可以切换的，但不能同时两个都是active状态，最多只有1个是active状态。只有active namenode提供对外的服务，standby namenode是不对外服务的。active namenode和standby namenode之间通过NFS或者JN（journalnode，QJM方式）来同步数据。
+
+2）active namenode会把最近的操作记录写到本地的一个edits文件中（edits file），并传输到NFS或者JN中。standby namenode定期的检查，从NFS或者JN把最近的edit文件读过来，然后把edits文件和fsimage文件合并成一个新的fsimage，合并完成之后会通知active namenode获取这个新fsimage。active namenode获得这个新的fsimage文件之后，替换原来旧的fsimage文件。
+
+3）这样，保持了active namenode和standby namenode的数据的实时同步，standby namenode可以随时切换成active namenode（譬如active namenode挂了）。
+==思考：HDFS配置HA之后，是否还需要Secondary NameNode？==
+
+#### 9.2.2 NFS方式
+NFS作为active namenode和standby namenode之间数据共享的存储。active namenode会把最近的edits文件写到NFS，而standby namenode从NFS中把数据读过来。这个方式的缺点是，如果active namenode或者standby namenode有一个和NFS之间网络有问题，则会造成他们之前数据的同步出问题。
+![NFS方式](assets/NFS方式.png)
+
+9.2.2 QJM（Quorum Journal Manager ）方式 
+QJM的方式可以解决上述NFS容错机制不足的问题。active namenode和standby namenode之间是通过一组journalnode（数量是奇数，可以是3,5,7...,2n+1）来共享数据。active namenode把最近的edits文件写到2n+1个journalnode上，只要有n+1个写入成功就认为这次写入操作成功了，然后standby namenode就可以从journalnode上读取了。可以看到，QJM方式有容错的机制，可以容忍n个journalnode的失败。
+![QJM](assets/QJM.png)
+
+#### 9.2.3 主备节点的切换
+active namenode和standby namenode可以随时切换。当active namenode挂掉后，也可以把standby namenode切换成active状态，成为active namenode。可以人工切换和自动切换。人工切换是通过执行HA管理的命令来改变namenode的状态，从standby到active，或者从active到standby。自动切换则在active namenode挂掉的时候，standby namenode自动切换成active状态，取代原来的active namenode成为新的active namenode，HDFS继续正常工作。
+
+主备节点的自动切换需要配置zookeeper。active namenode和standby namenode把他们的状态实时记录到zookeeper中，zookeeper监视他们的状态变化。当zookeeper发现active namenode挂掉后，会自动把standby namenode切换成active namenode。
+![主备节点切换](assets/主备节点切换.png)
