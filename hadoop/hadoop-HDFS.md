@@ -35,36 +35,44 @@
 主要解决，海量数据的存储和海量数据的分析计算问题
 
 
-#### 1.2大数据特点（4V）
+#### 1.2 大数据特点（4V）
 * Volume（大量）
-截至目前，人类生产的所有印刷材料的数据量是200PB，而历史上全人类总共说过的话的数据量大约是5EB。当前，典型个人计算机硬盘的容量为TB量级，而一些大企业的数据量已经接近EB量级。![volume](assets/volume.png)
+  截至目前，人类生产的所有印刷材料的数据量是200PB，而历史上全人类总共说过的话的数据量大约是5EB。当前，典型个人计算机硬盘的容量为TB量级，而一些大企业的数据量已经接近EB量级。![volume](assets/volume.png)
 
 * Velocity（高速）
-这是大数据区分于传统数据挖掘的最显著特征。根据IDC的“数字宇宙”的报告，预计到2020年，全球数据使用量将达到35.2ZB。在如此海量的数据面前，处理数据的效率就是企业的生命。
-
-天猫双十一：2017年3分01秒，天猫交易额超过100亿![velocity](assets/velocity.png)
+  这是大数据区分于传统数据挖掘的最显著特征。根据IDC的“数字宇宙”的报告，预计到2020年，全球数据使用量将达到35.2ZB。在如此海量的数据面前，处理数据的效率就是企业的生命。
+  天猫双十一：2017年3分01秒，天猫交易额超过100亿
+  <img src="assets/velocity.png" style="width:500px"/>
 
 * Variety（多样）
-这种类型的多样性也让数据被分为结构化数据和非结构化数据。相对于以往便于存储的以数据库/文本为主的结构化数据，非结构化数据越来越多，包括网络日志、音频、视频、图片、地理位置信息等，这些多类型的数据对数据的处理能力提出了更高要求。
+  这种类型的多样性也让数据被分为结构化数据和非结构化数据。相对于以往便于存储的以数据库/文本为主的结构化数据，非结构化数据越来越多，包括网络日志、音频、视频、图片、地理位置信息等，这些多类型的数据对数据的处理能力提出了更高要求。
+
+  ![Variety](assets/Variety.jpeg)
 
 * Value（低价值密度）
-价值密度的高低与数据总量的大小成反比。
+  价值密度的高低与数据总量的大小成反比。
 
 ```mermaid
 graph LR
 A[百度有钱花数据 <br>200M/day<br>200M*365=73000M=71.29G] -- 需要统计<br>的数据 --> B(客户注册数据<br>授信通过率<br>放款笔数/金额<br>还款笔数/金额<br>逾期率<br>坏账率<br>收益率)
 ```
 
-***如何快速对有价值数据“提纯”成为目前大数据背景下待解决的难题***
+***==如何快速对有价值数据“提纯”成为目前大数据背景下待解决的难题==***
 
 #### 1.3 大数据应用场景
 1. 物流仓储：大数据分析系统助力商家精细化运营、提升销量、节约成本
+
 2. 零售：分析用户消费习惯，为用户购买商品提供方便，从而提升商品销量。经典案例，子尿布+啤酒。
+
 3. 旅游：深度结合大数据能力与旅游行业需求，共建旅游产业智慧管理、智慧服务和智慧营销的未来。
+
+   ![马蜂窝](assets/马蜂窝.png)
+
 4. 商品广告推荐：给用户推荐可能喜欢的商品、电影
+
 5. 人工智能
 
-#### 1.4 大数据应用场景
+![大数据人工智能](assets/大数据人工智能.png)
 
 #### 1.5 大数据部门组织结构 
 
@@ -144,7 +152,14 @@ Hadoop官方网站：http://hadoop.apache.org/
 #### 3.1 本地运行模式
 ##### 3.1.1 官方Grep案例
 1. 在hadoop根目录下创建一个input文件夹
+```shell
+cd /opt/module/hadoop-2.7.2/
+mkdir input
+```
 2. 将Hadoop的xml配置文件复制到input
+```shell
+cp etc/hadoop/*.xml input
+```
 3. 执行share目录下的MapReduce程序
 ```shell
 bin/hadoop jar share/hadoop/mapreduce/hadoop-mapreduce-examples-2.7.2.jar grep input output 'dfs[a-z.]+'
@@ -175,6 +190,14 @@ cat wcoutput/part-r-00000
 ```
 #### 3.2 分布式模式
 伪分布式模式、完全分布式模式
+伪分布式搭建：<https://blog.csdn.net/qq_30158837/article/details/78289813>
+
+完全分布式：
+
+启动的Java进程
+
+![Hadoop集群模式服务](assets/Hadoop集群模式服务.png)
+
 1. web端查看HDFS文件系统-->端口号50070
 http://hadoop102:50070/
 2. YARN的浏览器页面查看 -->端口号8088
@@ -399,7 +422,7 @@ public void testCopyFromLocalFile() throws IOException, InterruptedException, UR
 		FileSystem fs = FileSystem.get(new URI("hdfs://hadoop102:9000"), configuration, "marcel");
 
 		// 2 上传文件
-		fs.copyFromLocalFile(new Path("e:/banzhang.txt"), new Path("/banzhang.txt"));
+		fs.copyFromLocalFile(new Path("e:/banzhang.txt"), new Path("/upload1/input/wordcount.txt"));
 
 		// 3 关闭资源
 		fs.close();
@@ -435,7 +458,7 @@ public void testCopyToLocalFile() throws IOException, InterruptedException, URIS
 		// Path src 指要下载的文件路径
 		// Path dst 指将文件下载到的路径
 		// boolean useRawLocalFileSystem 是否开启文件校验
-		fs.copyToLocalFile(false, new Path("/banzhang.txt"), new Path("e:/banhua.txt"), true);
+		fs.copyToLocalFile(false, new Path("/upload1/input/wordcount.txt"), new Path("e:/wordcount1.txt"), true);
 		
 		// 3 关闭资源
 		fs.close();
@@ -451,7 +474,7 @@ public void testDelete() throws IOException, InterruptedException, URISyntaxExce
 	FileSystem fs = FileSystem.get(new URI("hdfs://hadoop102:9000"), configuration, "marcel");
 		
 	// 2 执行删除
-	fs.delete(new Path("/upload1/"), true);
+	fs.delete(new Path("/upload1/input"), true);
 		
 	// 3 关闭资源
 	fs.close();
@@ -467,7 +490,7 @@ public void testRename() throws IOException, InterruptedException, URISyntaxExce
 	FileSystem fs = FileSystem.get(new URI("hdfs://hadoop102:9000"), configuration, "marcel"); 
 		
 	// 2 修改文件名称
-	fs.rename(new Path("/banzhang.txt"), new Path("/banhua.txt"));
+	fs.rename(new Path("/upload1/wordcount.txt"), new Path("/upload1/wordcount1.txt"));
 		
 	// 3 关闭资源
 	fs.close();
@@ -558,10 +581,10 @@ public void putFileToHDFS() throws IOException, InterruptedException, URISyntaxE
 	FileSystem fs = FileSystem.get(new URI("hdfs://hadoop102:9000"), configuration, "marcel");
 
 	// 2 创建输入流
-	FileInputStream fis = new FileInputStream(new File("e:/banhua.txt"));
+	FileInputStream fis = new FileInputStream(new File("e:/wordcount.txt"));
 
 	// 3 获取输出流
-	FSDataOutputStream fos = fs.create(new Path("/banhua.txt"));
+	FSDataOutputStream fos = fs.create(new Path("/upload1/wordcount_IO.txt"));
 
 	// 4 流对拷
 	IOUtils.copyBytes(fis, fos, configuration);
@@ -585,10 +608,10 @@ public void getFileFromHDFS() throws IOException, InterruptedException, URISynta
 	FileSystem fs = FileSystem.get(new URI("hdfs://hadoop102:9000"), configuration, "marcel");
 		
 	// 2 获取输入流
-	FSDataInputStream fis = fs.open(new Path("/banhua.txt"));
+	FSDataInputStream fis = fs.open(new Path("/upload1/wordcount_IO.txt"));
 		
 	// 3 获取输出流
-	FileOutputStream fos = new FileOutputStream(new File("e:/banhua.txt"));
+	FileOutputStream fos = new FileOutputStream(new File("e:/wordcount1.txt"));
 		
 	// 4 流的对拷
 	IOUtils.copyBytes(fis, fos, configuration);
@@ -674,7 +697,7 @@ NameNode和Secondary NameNode工作机制
 
 ### 9.HDFS HA高可用
 
-#### 9.1什么是HDFS HA
+#### 9.1 什么是HDFS HA
 在hadoop2.0之前，namenode只有一个，存在单点问题（虽然hadoop1.0有secondarynamenode，checkpointnode，buckcupnode这些，但是单点问题依然存在），在hadoop2.0引入了HA机制。hadoop2.0的HA机制官方介绍了有2种方式，一种是NFS（Network File System）方式，另外一种是QJM（Quorum Journal Manager）方式。
 
 1）所谓HA（High Available），即高可用（7*24小时不中断服务）。
@@ -686,7 +709,7 @@ NameNode和Secondary NameNode工作机制
 HDFS HA功能通过配置Active/Standby两个NameNodes实现在集群中对NameNode的热备来解决上述问题。如果出现故障，如机器崩溃或机器需要升级维护，这时可通过此种方式将NameNode很快的切换到另外一台机器。
 #### 9.2 HDFS-HA工作机制
 
-#### 9.2.1基本原理
+##### 9.2.1 基本原理
 
 通过双NameNode消除单点故障
 1）hadoop2.0的HA 机制有两个namenode，一个是active namenode，状态是active；另外一个是standby namenode，状态是standby。两者的状态是可以切换的，但不能同时两个都是active状态，最多只有1个是active状态。只有active namenode提供对外的服务，standby namenode是不对外服务的。active namenode和standby namenode之间通过NFS或者JN（journalnode，QJM方式）来同步数据。
@@ -696,16 +719,33 @@ HDFS HA功能通过配置Active/Standby两个NameNodes实现在集群中对NameN
 3）这样，保持了active namenode和standby namenode的数据的实时同步，standby namenode可以随时切换成active namenode（譬如active namenode挂了）。
 ==思考：HDFS配置HA之后，是否还需要Secondary NameNode？==
 
-#### 9.2.2 NFS方式
+##### 9.2.2 2NN模式与HA模式启动服务的对比
+
+![2NN和HDFS_HA](assets/2NN和HDFS_HA.png)
+
+
+##### 9.2.3 NFS方式
 NFS作为active namenode和standby namenode之间数据共享的存储。active namenode会把最近的edits文件写到NFS，而standby namenode从NFS中把数据读过来。这个方式的缺点是，如果active namenode或者standby namenode有一个和NFS之间网络有问题，则会造成他们之前数据的同步出问题。
 ![NFS方式](assets/NFS方式.png)
 
-9.2.2 QJM（Quorum Journal Manager ）方式 
+##### 9.2.3 QJM（Quorum Journal Manager ）方式 
 QJM的方式可以解决上述NFS容错机制不足的问题。active namenode和standby namenode之间是通过一组journalnode（数量是奇数，可以是3,5,7...,2n+1）来共享数据。active namenode把最近的edits文件写到2n+1个journalnode上，只要有n+1个写入成功就认为这次写入操作成功了，然后standby namenode就可以从journalnode上读取了。可以看到，QJM方式有容错的机制，可以容忍n个journalnode的失败。
 ![QJM](assets/QJM.png)
 
-#### 9.2.3 主备节点的切换
+##### 9.2.4 主备节点的切换
 active namenode和standby namenode可以随时切换。当active namenode挂掉后，也可以把standby namenode切换成active状态，成为active namenode。可以人工切换和自动切换。人工切换是通过执行HA管理的命令来改变namenode的状态，从standby到active，或者从active到standby。自动切换则在active namenode挂掉的时候，standby namenode自动切换成active状态，取代原来的active namenode成为新的active namenode，HDFS继续正常工作。
 
 主备节点的自动切换需要配置zookeeper。active namenode和standby namenode把他们的状态实时记录到zookeeper中，zookeeper监视他们的状态变化。当zookeeper发现active namenode挂掉后，会自动把standby namenode切换成active namenode。
 ![主备节点切换](assets/主备节点切换.png)
+
+### 10.YARN HA高可用
+启动的服务
+
+![YARN_HA](assets/YARN_HA.png)
+
+
+### ==作业==
+1. 运行Hadoop本地运行模式官方案例
+2. 尝试搭建Hadoop伪分布式集群
+3. Hadoop的shell指令练习
+4. Hadoop的API调用及IO流的操作
